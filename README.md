@@ -1,6 +1,6 @@
-# Go Simple CRUD Application with Gin Framework
+# Go Simple CRUD Application with MongoDB and Gin Framework
 
-This is a simple CRUD (Create, Read, Update, Delete) application built in Go using the [Gin Web Framework](https://github.com/gin-gonic/gin). The application manages a list of `todos`, allowing users to create, read, update, and delete `todo` items.
+This is a simple CRUD (Create, Read, Update, Delete) application built in Go using the [Gin Web Framework](https://github.com/gin-gonic/gin) and MongoDB[https://www.mongodb.com/]. The application manages a list of `todos`, allowing users to create, read, update, and delete `todo` items.
 
 ## Features
 
@@ -24,6 +24,8 @@ This is a simple CRUD (Create, Read, Update, Delete) application built in Go usi
 
 - [Go](https://golang.org/dl/) (version 1.18 or higher)
 - [Gin Web Framework](https://github.com/gin-gonic/gin)
+- [MongoDB](https://www.mongodb.com/)
+- [Docker](https://docs.docker.com/get-docker/)
 
 ### Installation
 
@@ -40,7 +42,13 @@ This is a simple CRUD (Create, Read, Update, Delete) application built in Go usi
    go mod download
    ```
 
-3. **Run the application**:
+3. **Run the mongo server**:
+
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **Run the application**:
 
    with go:
 
