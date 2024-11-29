@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -19,20 +20,54 @@ type todo struct {
 	Completed 	bool   `json:"completed"`
 }
 
+var Validate *validator.Validate
+
 var (
 	collection *mongo.Collection
 )
 
+func init() {
+	Validate = validator.New(validator.WithRequiredStructEnabled())
+}
+
+func parseValidationError(err error) string {
+	if validationErrors, ok := err.(validator.ValidationErrors); ok {
+		var result string
+		for _, fieldError := range validationErrors {
+			result += fmt.Sprintf(
+				"Field validation for '%s' failed: '%s' (condition: %s)\n",
+				fieldError.Field(), 
+				fieldError.ActualTag(),
+				fieldError.Param(),    
+			)
+		}
+		return result
+	}
+
+	return "An unknown validation error occurred."
+}
+
+type todoPayload struct {
+	Item    string `json:"item" validate:"required,max=100,min=2"`
+	Completed bool   `json:"completed"`
+}
+
 func createTodo(ginContext *gin.Context) {
-	var todo todo
-	if err := ginContext.ShouldBindJSON(&todo); err != nil {
+	var payload todoPayload
+
+	if err := ginContext.ShouldBindJSON(&payload); err != nil {
 		ginContext.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
 	}
 
-	if todo.Item == "" {
-		ginContext.JSON(http.StatusBadRequest, gin.H{"error": "item is required"})
+	if err := Validate.Struct(payload); err != nil {
+		ginContext.JSON(http.StatusBadRequest, gin.H{"error": parseValidationError(err)})
 		return
+	}
+
+	todo := todo{
+		Item: payload.Item,
+		Completed: payload.Completed,	
 	}
 
 	insertResult, err := collection.InsertOne(context.Background(), todo)
@@ -140,14 +175,20 @@ func updateTodo(ginContext *gin.Context) {
 		return
 	}
 
-	var todoData todo
-	if err := ginContext.ShouldBindJSON(&todoData); err != nil {
+	var payload todoPayload
+	if err := ginContext.ShouldBindJSON(&payload); err != nil {
 		ginContext.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
 		return
 	}
 
+	if err := Validate.Struct(payload); err != nil {
+		ginContext.JSON(http.StatusBadRequest, gin.H{"error": parseValidationError(err)})
+		return
+	}
+
+
 	filter := bson.M{"_id": objectId}
-	update := bson.M{"$set": bson.M{"item": todoData.Item}}
+	update := bson.M{"$set": bson.M{"item": payload.Item}}
 
 	var updatedTodo todo
 	err = collection.FindOneAndUpdate(
