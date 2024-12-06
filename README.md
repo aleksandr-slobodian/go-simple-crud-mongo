@@ -32,8 +32,8 @@ This is a simple CRUD (Create, Read, Update, Delete) application built in Go usi
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/aleksandr-slobodian/go-simple-crud
-   cd go-simple-crud
+   git clone https://github.com/aleksandr-slobodian/go-simple-crud-mongo
+   cd go-simple-crud-mongo
    ```
 
 2. **Install dependencies**:
